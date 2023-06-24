@@ -8,19 +8,23 @@ logger = logging.getLogger(__name__)
 
 
 class AI:
-    def __init__(self, model="gpt-4", temperature=0.1):
+    def __init__(self, model="gpt-4", temperature=0.1, localai_model=False, localai_base="http://localhost:8080/v1", localai_key="-"):
+        self.model = model
         self.temperature = temperature
+        self.localai_model = localai_model
+        self.localai_base = localai_base
+        self.localai_key = localai_key
 
-        try:
-            openai.Model.retrieve(model)
-            self.model = model
-        except openai.InvalidRequestError:
-            print(
-                f"Model {model} not available for provided API key. Reverting "
-                "to gpt-3.5-turbo. Sign up for the GPT-4 wait list here: "
-                "https://openai.com/waitlist/gpt-4-api"
-            )
-            self.model = "gpt-3.5-turbo"
+        if not localai_model:
+            try:
+                openai.Model.retrieve(model)
+            except openai.InvalidRequestError:
+                print(
+                    f"Model {model} not available for provided API key. Reverting "
+                    "to gpt-3.5-turbo. Sign up for the GPT-4 wait list here: "
+                    "https://openai.com/waitlist/gpt-4-api"
+                )
+                self.model = "gpt-3.5-turbo"
 
     def start(self, system, user):
         messages = [
@@ -44,16 +48,29 @@ class AI:
             messages += [{"role": "user", "content": prompt}]
 
         logger.debug(f"Creating a new chat completion: {messages}")
-        response = openai.ChatCompletion.create(
-            messages=messages,
-            stream=True,
-            model=self.model,
-            temperature=self.temperature,
-        )
+        if self.localai_model:
+            response = openai.ChatCompletion.create(
+                messages=messages,
+                stream=True,
+                model=self.model,
+                temperature=self.temperature,
+                api_base=self.localai_base,
+                api_key=self.localai_key,
+            )
+            # print(list(response))
+        else:
+            response = openai.ChatCompletion.create(
+                messages=messages,
+                stream=True,
+                model=self.model,
+                temperature=self.temperature,
+            )
 
         chat = []
         for chunk in response:
-            delta = chunk["choices"][0]["delta"]
+            delta = chunk["choices"][0].get("delta")
+            if delta is None:
+                continue
             msg = delta.get("content", "")
             print(msg, end="")
             chat.append(msg)
