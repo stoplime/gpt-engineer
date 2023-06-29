@@ -8,14 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 class AI:
-    def __init__(self, model="gpt-4", temperature=0.1, localai_model=False, localai_base="http://localhost:8080/v1", localai_key="-"):
+    def __init__(self, model="gpt-4", temperature=0.1, local_model=False, openai_base="http://localhost:8080/v1", openai_key="-"):
         self.model = model
         self.temperature = temperature
-        self.localai_model = localai_model
-        self.localai_base = localai_base
-        self.localai_key = localai_key
+        self.local_model = local_model
+        self.openai_base = openai_base
+        self.openai_key = openai_key
 
-        if not localai_model:
+        if not local_model:
             try:
                 openai.Model.retrieve(model)
             except openai.InvalidRequestError:
@@ -48,14 +48,14 @@ class AI:
             messages += [{"role": "user", "content": prompt}]
 
         logger.debug(f"Creating a new chat completion: {messages}")
-        if self.localai_model:
+        if self.local_model:
             response = openai.ChatCompletion.create(
                 messages=messages,
                 stream=True,
                 model=self.model,
                 temperature=self.temperature,
-                api_base=self.localai_base,
-                api_key=self.localai_key,
+                api_base=self.openai_base,
+                api_key=self.openai_key,
             )
             # print(list(response))
         else:

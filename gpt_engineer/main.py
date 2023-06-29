@@ -19,9 +19,9 @@ def main(
     project_path: str = typer.Argument("example", help="path"),
     delete_existing: bool = typer.Argument(False, help="delete existing files"),
     model: str = "gpt-4",
-    localai_model: bool = typer.Option(False, help="Uses LocalAI model"),
-    localai_base: str = typer.Option("http://localhost:8080/v1", help="LocalAI URL"),
-    localai_key: str = typer.Option("-", help="LocalAI Key"),
+    local_model: bool = typer.Option(False, help="Toggles local model utilizing OpenAI API"),
+    openai_base: str = typer.Option("http://localhost:8080/v1", help="OpenAI Base URL"),
+    openai_key: str = typer.Option("-", help="LocalAI Key"),
     temperature: float = 0.1,
     steps_config: steps.Config = typer.Option(
         steps.Config.DEFAULT, "--steps", "-s", help="decide which steps to run"
@@ -49,9 +49,9 @@ def main(
     ai = AI(
         model=model,
         temperature=temperature,
-        localai_model=localai_model,
-        localai_base=localai_base,
-        localai_key=localai_key,
+        local_model=local_model,
+        openai_base=openai_base,
+        openai_key=openai_key,
     )
 
     dbs = DBs(
